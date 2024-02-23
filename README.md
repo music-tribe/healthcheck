@@ -1,2 +1,2 @@
 # healthcheck
-A handler for concurrently handling dependency health checks
+A Golang health check client that exposes an echo handler for concurrently handling dependency health checks
