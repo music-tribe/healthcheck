@@ -3,6 +3,7 @@ package healthcheck
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	logger "dev.azure.com/MusicTribe/MT_CLOUD/mcloud-logger.git"
 	"github.com/stretchr/testify/assert"
@@ -60,6 +61,30 @@ func TestNewClient(t *testing.T) {
 		}
 
 		assert.NotNil(t, actual)
+	})
+
+	t.Run("when we create a default client, we should expect a default timeout of 25 seconds", func(t *testing.T) {
+		expect := time.Second * 10
+		cli := NewClient("svcName", func(co *ClientOptions) { co.Timeout = expect })
+
+		var actual time.Duration
+		if c, ok := cli.(*client); ok {
+			actual = c.timeout
+		}
+
+		assert.Equal(t, expect, actual)
+	})
+
+	t.Run("when we set a timeout of 10 seconds, we should expect the timeout to be set to 10 seconds", func(t *testing.T) {
+		expect := time.Second * 25
+		cli := NewClient("svcName")
+
+		var actual time.Duration
+		if c, ok := cli.(*client); ok {
+			actual = c.timeout
+		}
+
+		assert.Equal(t, expect, actual)
 	})
 
 	t.Run("when we set our own logger via functional option, we should expect that logger to be on the client object", func(t *testing.T) {
