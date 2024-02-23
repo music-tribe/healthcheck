@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"context"
 	"net/http"
 
 	logger "dev.azure.com/MusicTribe/MT_CLOUD/mcloud-logger.git"
@@ -8,7 +9,7 @@ import (
 )
 
 type Client interface {
-	Handler(healthchecks ...HealthChecker) func(echo.Context) error
+	Handler(ctx context.Context, healthchecks ...HealthChecker) func(echo.Context) error
 }
 
 type HealthCheckLogger interface {
