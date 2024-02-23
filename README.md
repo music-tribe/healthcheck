@@ -16,7 +16,9 @@ A Golang health check client that exposes an echo handler for concurrently handl
     e.GET("/readiness", hcClient.Handler(service, database, storage))
 ```
 
-### Implementing the Healthchecker on one of our dependencies
+### Satisfying the HealthChecker interface
+We now need to ensure that any dependencies we might want to check satisfy the HealthChecker interface. 
+We can do this as shown in this simple example...
 ```golang
     type Database struct {...}
 
