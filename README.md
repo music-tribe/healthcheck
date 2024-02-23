@@ -1,2 +1,2 @@
-# health-check-handler
+# healthcheck
 A handler for concurrently handling dependency health checks
