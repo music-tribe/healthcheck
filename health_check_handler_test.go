@@ -58,13 +58,15 @@ type stubHealthChecker struct {
 
 func (shc *stubHealthChecker) HealthCheck(ctx context.Context, logger HealthCheckLogger) <-chan error {
 	errChan := make(chan error)
+	fnc := func() error {
+		time.Sleep(shc.delay)
+		return shc.err
+	}
 
 	go func() {
 		defer close(errChan)
-		time.Sleep(shc.delay)
 		select {
-		case errChan <- shc.err:
-			return
+		case errChan <- fnc():
 		default:
 			// if the error channel is blocked, allow the goroutine to close
 		}
