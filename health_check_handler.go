@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -37,9 +38,9 @@ func (cli *client) Handler(ctx context.Context, healthchecks ...HealthChecker) f
 
 		if err := g.Wait(); err != nil {
 			cli.logger.Errorf("healthcheck.Handler: %v", err)
-			return err
+			return c.String(cli.failureStatusCode, "Unhealthy")
 		}
 
-		return nil
+		return c.String(http.StatusOK, "Healthy")
 	}
 }
