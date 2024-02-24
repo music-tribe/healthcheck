@@ -3,37 +3,53 @@ A Golang health check client that exposes an echo handler for concurrently handl
 
 ## In Use
 
-### Initializing the client
+### Initializing the client and setting up an echo http handler
+Here's a very basic example of how we might set up the healthcheck
 ```golang
     import github.com/music-tribe/healthcheck
 
     hcClient := healthcheck.NewClient("<myServiceName>")
 
+    db := database.New()
+    app := application.New(db)
+
     e := echo.New()
 
-    // for this example service, database and storage objects all satisfy HealthChecker interface
+    appHealthCheckTest := healthcheck.NewTest(
+        "app_health", 
+        func(ctx context.Context) error {
+            select {
+            case <-ctx.Done():
+                return ctx.Err()
+            default:
+                // the app has it's own simple health check function
+                return app.Health()
+        },
+    )
 
-    e.GET("/readiness", hcClient.Handler(service, database, storage))
+    // imagine each dependency we want to test exposes a healthcheck test
+    ctx := context.Background()
+    e.GET("/readiness", hcClient.HttpHandler(ctx, appHealthCheckTest, db.HealthCheckTest)
 ```
 
-### Satisfying the HealthChecker interface
-We now need to ensure that any dependencies we might want to check satisfy the HealthChecker interface. 
-We can do this as shown in this simple example...
+### Creating a healthcheck test
+Healthcheck tests are simple to create. They're just objects that contain a name and a simple method for checking
+some parameter within your dependency. Here's a simple way to write a database connection test...
 ```golang
     type Database struct {...}
 
-    func (db *Database) HealthCheck(ctx context.Context, logger HealthCheckLogger) <-chan error {
-        errChan := make(chan error)
+    func (db *Database) HealthCheckTest() healthcheck.Test {
+        method := func(ctx context.Context) error {
+            return db.session.Ping()
+        }
 
-        go func() {
-            defer close(errChan)
-
-            select {
-            case errChan<-db.Ping():
-            default:
-                // use default incase err chan is blocked
-            }
-        }()
-
-        return errChan
+        return healthcheck.NewTest("database ping", method)
     }
+
+    ...
+
+    // the test would be injected as below
+    ctx := context.Background()
+    e.GET("/readiness", hcClient.HttpHandler(ctx, db.HealthCheckTest())
+
+```
