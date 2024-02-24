@@ -11,6 +11,7 @@ import (
 
 type Client interface {
 	Handler(ctx context.Context, healthchecks ...HealthChecker) func(echo.Context) error
+	HttpHandler(ctx context.Context, tests ...Test) func(echo.Context) error
 }
 
 type HealthCheckLogger interface {
